@@ -17,16 +17,18 @@ router.get("/item/:id", async (req, res) => {
 });
 
 // get request to get all items from item collection
-router.get("/items/all", async (req, res) => {
+https: router.get("/items/all", async (req, res) => {
 	try {
 		const itemsRef = db.collection("items");
 		const snapshot = await itemsRef.get();
 
 		let response = [];
 		snapshot.forEach((doc) => {
-			response.push(doc.data());
+			const obj = doc.data();
+			obj.id = doc.id;
+			response.push(obj);
 		});
-
+		//res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
 		res.status(200).send(response);
 	} catch (err) {
 		res.status(500).send(err.message);
@@ -40,6 +42,7 @@ router.post("/add/item", async (req, res) => {
 		const docRef = db.collection("items").doc(uniqueId);
 
 		const obj = req.body;
+		obj.id = uniqueId;
 
 		if (obj.inclusiveOfTax === true) {
 			obj.price = obj.purchasePrice;

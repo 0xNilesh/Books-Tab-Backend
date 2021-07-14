@@ -6,7 +6,11 @@ const inventoryRouter = require("./routers/inventoryRouter");
 const app = express();
 
 app.use(express.json());
-app.use(itemsRouter);
+app.use(function (req, res, next) {
+	res.setHeader("Access-Control-Allow-Origin", "*");
+	next();
+});
 app.use(inventoryRouter);
+app.use(itemsRouter);
 
 module.exports = app;

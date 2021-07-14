@@ -5,6 +5,25 @@ const multer = require("multer");
 const cuid = require("cuid");
 
 // All requests for inventory collection
+// get request to get all docs from inventory collection
+router.get("/inventory/all", async (req, res) => {
+	try {
+		const inventoryRef = db.collection("inventory");
+		const snapshot = await inventoryRef.get();
+
+		let response = [];
+		snapshot.forEach((doc) => {
+			const obj = doc.data();
+			obj.id = doc.id;
+			response.push(obj);
+		});
+		//res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+		res.status(200).send(response);
+	} catch (err) {
+		res.status(500).send(err.message);
+	}
+});
+
 // get request to get particular item from inventory
 router.get("/inventory/:id", async (req, res) => {
 	const id = req.params.id;
@@ -12,23 +31,6 @@ router.get("/inventory/:id", async (req, res) => {
 	try {
 		const docRef = db.collection("inventory").doc(id).get();
 		res.status(200).send(await (await docRef).data());
-	} catch (err) {
-		res.status(500).send(err.message);
-	}
-});
-
-// get request to get all items from inventory collection
-router.get("/inventory/all", async (req, res) => {
-	try {
-		const itemsRef = db.collection("inventory");
-		const snapshot = await itemsRef.get();
-
-		let response = [];
-		snapshot.forEach((doc) => {
-			response.push(doc.data());
-		});
-
-		res.status(200).send(response);
 	} catch (err) {
 		res.status(500).send(err.message);
 	}
@@ -61,11 +63,15 @@ router.post("/add/inventory", async (req, res) => {
 			openingStock: undefined,
 			lowStockWarning: undefined,
 			lowStockUnits: undefined,
+			id: uniqueId,
 		});
 
 		// save in inventory
 		obj.itemId = uniqueId;
-		await db.collection("inventory").doc().set(obj);
+
+		const newUniqueId = cuid();
+		obj.id = newUniqueId;
+		await db.collection("inventory").doc(newUniqueId).set(obj);
 		console.log(obj);
 
 		res.sendStatus(200);
